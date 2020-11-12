@@ -1,4 +1,4 @@
-# 客服IMSDK开发指南（Android）（3.2.9）
+# 客服IMSDK开发指南（Android）（3.4.0）
 
 #客服IMSDK开发指南（Android）
 
@@ -15,9 +15,6 @@
 ##  二、sdk下载文件说明
 ### 1、sdk文件包含内容：
 
-
-- 所需jar包
-- 录音所需so库（demo 中只含有部分主要平台）
 - 对接说明文档
 - 运行实例 demo
 
@@ -40,7 +37,7 @@
 
 
 
-![](https://cdn.nlark.com/yuque/0/2020/png/1289814/1588125992002-324fddfe-bb8f-44e4-b800-b5a566af9bd5.png#align=left&display=inline&height=1046&margin=%5Bobject%20Object%5D&originHeight=1046&originWidth=750&size=0&status=done&style=none&width=750)
+![image.png](https://cdn.nlark.com/yuque/0/2020/png/1289814/1605167186974-54c84b45-0a91-45b0-b678-f5f59c3f0aed.png#align=left&display=inline&height=686&margin=%5Bobject%20Object%5D&name=image.png&originHeight=686&originWidth=397&size=52830&status=done&style=none&width=397)
 
 
 ```
@@ -105,20 +102,34 @@ findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
 
 
 #### 初始化SDK
-
-
+**1:首先创建 KfStartHelper 对象**
+KfStartHelper helper = new KfStartHelper(this);
+**2:调用配置要使用的服务环境**
+   目前提供两种方法进行配置：
+    1:RequestUrl._setRequestBasic_();
+_      腾讯云，阿里云用户只使用setRequestBasic即可_
+      RequestUrl.ALIYUN_REQUEST;//阿里云环境
+      RequestUrl.Tencent_REQUEST;//腾讯云环境
+    2: _RequestUrl.setRequestUrl();__注意：此方法仅适用于私有云环境_
 ```java
-IMChatManager.getInstance().init(getApplicationContext(),  
-             "receiverAction", 
-             "accessId",    
-             "username ",  
-             "userId");
+RequestUrl.setRequestUrl()
+(int tcpPort, String tcpHost, String http1, String http2,String wsAddress)
+    参数说明：tcpPort：tcp使用的端口号
+             tcpHost：tcp使用的服务地址
+             http1，http2：使用的Http服务
+             wsAddress：使用到的websocket 域名和端口号例如：117.15.85.141:7073，
+                        如不需要使用传空字符串即可。
+```
+_  __注意：setRequestBasic与__setRequestUrl__为二选一调用__  ，__ 腾讯云阿里云只使用__setRequestBasic即可，__私有云用户只使用setRequestUrl即可。_
+
+
+**3:初始化SDK**
+```java
+helper.initSdkChat("", "", "");
 ```
 
 
 其中参数说明：
-Context context, 应用上下文.
-String receiverAction 注册接收消息广播的action，填写自己定义的，该值也得填写到. AndroidManifest.xml中的NewMsgReceiver中的action中。
 String accessId, 接入号,必填项.
 String username, 用户名，用来在后台显示.
 String userId,   用户id，用来标识用户.
@@ -616,10 +627,28 @@ sdk中包含帮助开发人员开发的数据log,上线时可根据需求开关�
 
 ```java
 -keep class com.moor.imkf.** { *; }
-
--keepclassmembers class ** {
-    public void onEvent*(**);
+-keepattributes *Annotation*
+-keepclassmembers class * {
+    @org.greenrobot.eventbus.Subscribe <methods>;
 }
+-keep enum org.greenrobot.eventbus.ThreadMode { *; }
+#glide
+-keep public class * implements com.bumptech.glide.module.GlideModule
+-keep class * extends com.bumptech.glide.module.AppGlideModule {
+ <init>(...);
+}
+-keep public enum com.bumptech.glide.load.ImageHeaderParser$** {
+  **[] $VALUES;
+  public *;
+}
+-keep class com.bumptech.glide.load.data.ParcelFileDescriptorRewinder$InternalRewinder {
+  *** rewind();
+}
+#七牛
+-keep class com.qiniu.**{*;}
+-keep class com.qiniu.**{public <init>();}
+-ignorewarnings
+
 ```
 
 
@@ -872,48 +901,16 @@ try {
                 }
   helper.setCard(ci);
 ```
-## 六、项目迁移到AndroidX方法
-本SDK中目前使用的是Android support库，以更好的兼容更多版本 Android开发与运行环境，如您的主项目为Android X库并需要将本SDK迁移至Android X库版本，请参照以下升级方法。
-##### 具体参考：  （[迁移参考（来源于简书](https://www.jianshu.com/p/7dc111353328)）
-**1）更新升级AS以及Gradle插件**
+## 
 
-- 将AS更新至 **AS 3.2**及以上；
-- Gradle 插件版本改为 **4.6**及以上；
-项目下 `gradle/wrapper/gradle-wrapper.propertie` 文件中的`distributionUrl`改为：
+## 六、版本说明
+#### 3.4.0 （2020.11.12）更新日志
 
+- UI升级，全新的UI设计。
+- 支持消息已读未读 展示。
+- 增加访客点击座席发送的满意度评价链接的数据统计。
+- 留言内容展示到消息列表中。
 
-
-```
-distributionUrl=https\://services.gradle.org/distributions/gradle-4.6-all.zip
-```
-
-- compileSdkVersion 版本升级到 **28**及以上；
-- buildToolsVersion 版本改为 **28.0.2**及以上。
-
-![](//upload-images.jianshu.io/upload_images/4625401-92ed6de990f27533.png?imageMogr2/auto-orient/strip|imageView2/2/w/546/format/webp#align=left&display=inline&height=261&margin=%5Bobject%20Object%5D&originHeight=261&originWidth=546&status=done&style=none&width=546)
-插件更新提示
-**2）开启迁移AndroidX**
- 在项目的`gradle.properties`文件里添加如下配置：
-
-
-```
-android.useAndroidX=true
-android.enableJetifier=true
-```
- 表示项目启用 AndroidX 并迁移到 AndroidX。
-**3）一键迁移AndroidX库**
- AS 3.2 及以上版本提供了更加方便快捷的方法一键迁移到 AndroidX。选择菜单上的**ReFactor —— Migrate to AndroidX...** 即可。（如果迁移失败，就需要重复上面1，2，3，4步手动去修改迁移）
-![](//upload-images.jianshu.io/upload_images/4625401-b9524e8fa789d620.png?imageMogr2/auto-orient/strip|imageView2/2/w/316/format/webp#align=left&display=inline&height=423&margin=%5Bobject%20Object%5D&originHeight=423&originWidth=316&status=done&style=none&width=316)
-AndroidX 迁移
-**注意：**如果你的项目compileSdkVersion 低于28，点击Refactor to AndroidX...会提示：
-
-
-```
-You need to have at least have compileSdk 28 set in your module build.gradle to refactor to androidx
-```
-提示让你使用不低于28的sdk，升级最新到SDK，然后点击 **Migrate to AndroidX...**，AS就会自动将项目重构并使用AndroidX库。
-##  
-## 七、版本说明
 
 
 #### 3.2.9 （2020.9.04）更新日志
