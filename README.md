@@ -1,4 +1,4 @@
-# 客服IMSDK开发指南（Android）（3.4.0）
+[ ![Download](https://api.bintray.com/packages/jbx4631382/maven/moor_visitorIm_sdk/images/download.svg?version=3.4.0) ](https://bintray.com/jbx4631382/maven/moor_visitorIm_sdk/3.4.0/link)# 客服IMSDK开发指南（Android）（3.4.0）
 
 #客服IMSDK开发指南（Android）
 
